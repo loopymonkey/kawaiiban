@@ -19,9 +19,10 @@ import { authedFetch } from "@/lib/auth";
 type KanbanBoardProps = {
   username: string;
   onBoardReady?: (updater: (board: BoardData) => void) => void;
+  onAuthError?: () => void;
 };
 
-export const KanbanBoard = ({ username, onBoardReady }: KanbanBoardProps) => {
+export const KanbanBoard = ({ username, onBoardReady, onAuthError }: KanbanBoardProps) => {
   const [board, setBoard] = useState<BoardData>(() => initialData);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,13 @@ export const KanbanBoard = ({ username, onBoardReady }: KanbanBoardProps) => {
 
   useEffect(() => {
     authedFetch(`/api/board/${username}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 401) {
+          onAuthError?.();
+          throw new Error("Unauthorized");
+        }
+        return res.json();
+      })
       .then((data) => {
         if (data.state_json) {
           setBoard(data.state_json);
@@ -48,13 +55,15 @@ export const KanbanBoard = ({ username, onBoardReady }: KanbanBoardProps) => {
         console.error("Failed to load board", err);
         setIsLoading(false);
       });
-  }, [username]);
+  }, [username, onAuthError]);
 
   const saveBoard = (newBoard: BoardData) => {
     setBoard(newBoard);
     authedFetch(`/api/board/${username}`, {
       method: "PUT",
       body: JSON.stringify({ state_json: newBoard }),
+    }).then(res => {
+      if (res.status === 401) onAuthError?.();
     }).catch(console.error);
   };
 
@@ -137,8 +146,6 @@ export const KanbanBoard = ({ username, onBoardReady }: KanbanBoardProps) => {
   return (
     <div className="relative overflow-hidden">
       <main className="relative mx-auto flex min-h-screen max-w-[1500px] flex-col gap-10 px-6 pb-16 pt-12">
-        <header className="hidden">
-        </header>
 
         <DndContext
           sensors={sensors}

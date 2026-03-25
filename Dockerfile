@@ -31,8 +31,17 @@ COPY backend/ /app/backend/
 # Copy the built static bundle from Node image
 COPY --from=frontend-build /app/frontend/out/ /app/frontend/out/
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENV PYTHONPATH=/app
+ENV PORT=8080
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Create a non-root user for Cloud Run
+RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/api/health || exit 1
+
+# Use shell form for CMD to allow environment variable expansion of $PORT
+CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT}

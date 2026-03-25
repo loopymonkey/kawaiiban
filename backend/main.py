@@ -29,6 +29,7 @@ TOKEN_EXPIRE_DAYS = 7
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
+MODEL = "openai/gpt-oss-120b"
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -119,6 +120,10 @@ Current board state:
 
 api_router = APIRouter()
 
+@api_router.get("/health")
+def health():
+    return {"status": "ok"}
+
 # Auth endpoints
 
 @api_router.post("/auth/register")
@@ -206,11 +211,8 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
 
 # Board endpoints (require auth)
 
-def _get_or_create_board(username: str, db: Session):
-    user = db.query(database.User).filter(database.User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    board = db.query(database.Board).filter(database.Board.user_id == user.id).first()
+def _get_or_create_board(user_id: int, db: Session):
+    board = db.query(database.Board).filter(database.Board.user_id == user_id).first()
     if not board:
         initial_state = {
             "columns": [
@@ -231,7 +233,7 @@ def _get_or_create_board(username: str, db: Session):
                 "card-8": {"id": "card-8", "title": "Close onboarding sprint", "details": "Document release notes and share internally."},
             },
         }
-        board = database.Board(user_id=user.id, state_json=initial_state)
+        board = database.Board(user_id=user_id, state_json=initial_state)
         db.add(board)
         db.commit()
         db.refresh(board)
@@ -241,14 +243,14 @@ def _get_or_create_board(username: str, db: Session):
 def get_board(username: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if current_user.username != username:
         raise HTTPException(status_code=403, detail="Forbidden")
-    board = _get_or_create_board(username, db)
+    board = _get_or_create_board(current_user.id, db)
     return {"state_json": board.state_json}
 
 @api_router.put("/board/{username}")
 def update_board(username: str, board_req: BoardStateSchema, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if current_user.username != username:
         raise HTTPException(status_code=403, detail="Forbidden")
-    board = _get_or_create_board(username, db)
+    board = _get_or_create_board(current_user.id, db)
     board.state_json = board_req.state_json
     db.commit()
     return {"status": "success"}
@@ -262,7 +264,7 @@ async def ai_ping():
         raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not set")
     try:
         completion = await openai_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model=MODEL,
             messages=[{"role": "user", "content": "say hello"}],
             max_tokens=20,
         )
@@ -276,7 +278,7 @@ async def ai_chat(req: ChatRequest, db: Session = Depends(get_db), current_user=
     if not api_key or api_key in ("your_key_here", "dummy"):
         raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not set")
 
-    board = db.query(database.Board).filter(database.Board.user_id == current_user.id).first()
+    board = _get_or_create_board(current_user.id, db)
     board_json = json.dumps(board.state_json, indent=2) if board else "{}"
     system_prompt = SYSTEM_PROMPT.format(board_json=board_json)
 
@@ -287,7 +289,7 @@ async def ai_chat(req: ChatRequest, db: Session = Depends(get_db), current_user=
 
     try:
         completion = await openai_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model=MODEL,
             messages=messages,
         )
         raw = completion.choices[0].message.content

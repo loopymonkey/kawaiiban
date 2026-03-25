@@ -54,11 +54,15 @@ export default function Home() {
     setAuthState(newAuth);
   };
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     clearAuth();
     setAuthState(null);
     setScreen("login");
-  };
+  }, []);
+
+  const handleAuthError = useCallback(() => {
+    handleLogout();
+  }, [handleLogout]);
 
   if (!isClient) return null;
 
@@ -95,7 +99,13 @@ export default function Home() {
             className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-105 active:scale-95 shadow-sm"
             style={{ backgroundColor: "#753991" }}
           >
-            <span>✨</span>
+            <svg
+              className="h-4 w-4 fill-current"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+            </svg>
             <span>AI Assistant</span>
           </button>
           <button
@@ -110,6 +120,7 @@ export default function Home() {
       <KanbanBoard
         username={auth.username}
         onBoardReady={handleBoardReady}
+        onAuthError={handleAuthError}
       />
 
       <AiSidebar
