@@ -14,12 +14,14 @@ import {
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import { createId, initialData, moveCard, type BoardData } from "@/lib/kanban";
+import { authedFetch } from "@/lib/auth";
 
 type KanbanBoardProps = {
+  username: string;
   onBoardReady?: (updater: (board: BoardData) => void) => void;
 };
 
-export const KanbanBoard = ({ onBoardReady }: KanbanBoardProps) => {
+export const KanbanBoard = ({ username, onBoardReady }: KanbanBoardProps) => {
   const [board, setBoard] = useState<BoardData>(() => initialData);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +36,7 @@ export const KanbanBoard = ({ onBoardReady }: KanbanBoardProps) => {
   }, [onBoardReady]);
 
   useEffect(() => {
-    fetch("/api/board/user")
+    authedFetch(`/api/board/${username}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.state_json) {
@@ -46,13 +48,12 @@ export const KanbanBoard = ({ onBoardReady }: KanbanBoardProps) => {
         console.error("Failed to load board", err);
         setIsLoading(false);
       });
-  }, []);
+  }, [username]);
 
   const saveBoard = (newBoard: BoardData) => {
     setBoard(newBoard);
-    fetch("/api/board/user", {
+    authedFetch(`/api/board/${username}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ state_json: newBoard }),
     }).catch(console.error);
   };

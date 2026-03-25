@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import type { BoardData } from "@/lib/kanban";
+import { authedFetch } from "@/lib/auth";
 
 type Message = {
   role: "user" | "assistant";
@@ -49,10 +50,9 @@ export const AiSidebar = ({ isOpen, onClose, onBoardUpdate }: AiSidebarProps) =>
     setIsThinking(true);
 
     try {
-      const res = await fetch("/api/ai_chat", {
+      const res = await authedFetch("/api/ai_chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: "user", prompt, history }),
+        body: JSON.stringify({ prompt, history }),
       });
 
       if (!res.ok) {

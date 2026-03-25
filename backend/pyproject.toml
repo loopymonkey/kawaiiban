@@ -11,5 +11,7 @@ dependencies = [
     "pytest",
     "httpx",
     "openai",
-    "python-dotenv"
+    "python-dotenv",
+    "bcrypt",
+    "python-jose[cryptography]",
 ]

@@ -20,7 +20,7 @@ COPY backend/pyproject.toml backend/
 WORKDIR /app/backend
 
 # Install dependencies using uv
-RUN uv pip install --system fastapi uvicorn sqlalchemy pydantic openai python-dotenv
+RUN uv pip install --system fastapi uvicorn sqlalchemy pydantic openai python-dotenv bcrypt "python-jose[cryptography]" httpx
 
 # Move back to /app context
 WORKDIR /app

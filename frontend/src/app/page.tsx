@@ -3,15 +3,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { LoginForm } from "@/components/LoginForm";
+import { RegisterForm } from "@/components/RegisterForm";
 import { AiSidebar } from "@/components/AiSidebar";
+import { getAuth, setAuth, clearAuth, type AuthState } from "@/lib/auth";
 import type { BoardData } from "@/lib/kanban";
 
+type Screen = "login" | "register";
+
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [auth, setAuthState] = useState<AuthState | null>(null);
+  const [screen, setScreen] = useState<Screen>("login");
   const [isClient, setIsClient] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Callback ref: KanbanBoard registers its setter here so AI can push updates
   const boardUpdaterRef = useRef<((board: BoardData) => void) | null>(null);
 
   const handleBoardReady = useCallback((updater: (board: BoardData) => void) => {
@@ -24,38 +28,67 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    const auth = localStorage.getItem("isAuthenticated");
-    if (auth === "true") {
-      setIsAuthenticated(true);
+
+    // Handle Google OAuth redirect: /?token=xxx&username=yyy
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const username = params.get("username");
+    if (token && username) {
+      const newAuth = { token, username };
+      setAuth(newAuth);
+      setAuthState(newAuth);
+      // Clean URL
+      window.history.replaceState({}, "", "/");
+      return;
+    }
+
+    // Restore existing session from localStorage
+    const existing = getAuth();
+    if (existing) {
+      setAuthState(existing);
     }
   }, []);
 
-  const handleLogin = () => {
-    localStorage.setItem("isAuthenticated", "true");
-    setIsAuthenticated(true);
+  const handleLogin = (newAuth: AuthState) => {
+    setAuth(newAuth);
+    setAuthState(newAuth);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    setIsAuthenticated(false);
+    clearAuth();
+    setAuthState(null);
+    setScreen("login");
   };
 
-  if (!isClient) {
-    return null;
-  }
+  if (!isClient) return null;
 
-  if (!isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} />;
+  if (!auth) {
+    if (screen === "register") {
+      return (
+        <RegisterForm
+          onLogin={handleLogin}
+          onShowLogin={() => setScreen("login")}
+        />
+      );
+    }
+    return (
+      <LoginForm
+        onLogin={handleLogin}
+        onShowRegister={() => setScreen("register")}
+      />
+    );
   }
 
   return (
     <div className="relative min-h-screen bg-[#F5EEE4] text-[#554c4c]">
-      {/* Top bar */}
       <header className="flex w-full items-center justify-between px-4 py-3 bg-[#D3BF9A] shadow-sm z-50 relative">
         <div className="flex items-center">
           <img src="/logo_horizontal.png" alt="Kawaii-Ban" className="w-[200px] h-auto object-contain" />
         </div>
         <div className="flex items-center gap-3">
+          <span className="text-sm text-[#032147] font-medium hidden sm:block">
+            {auth.username}
+          </span>
           <button
             id="ai-sidebar-toggle"
             onClick={() => setIsSidebarOpen(true)}
@@ -74,7 +107,10 @@ export default function Home() {
         </div>
       </header>
 
-      <KanbanBoard onBoardReady={handleBoardReady} />
+      <KanbanBoard
+        username={auth.username}
+        onBoardReady={handleBoardReady}
+      />
 
       <AiSidebar
         isOpen={isSidebarOpen}
