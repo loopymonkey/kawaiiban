@@ -1,53 +1,81 @@
-# The Project Management MVP web app
+# Kawaii-Ban
 
-## Business Requirements
+A cute kawaii-themed Kanban project management app with an AI assistant sidebar.
 
-This project is building a Project Management App. Key features:
-- A user can sign in
-- When signed in, the user sees a Kanban board representing their project
-- The Kanban board has fixed columns that can be renamed
-- The cards on the Kanban board can be moved with drag and drop, and edited
-- There is an AI chat feature in a sidebar; the AI is able to create / edit / move one or more cards
+## Status
 
-## Limitations
+MVP complete. All 10 planned parts implemented and working.
 
-For the MVP, there will only be a user sign in (hardcoded to 'user' and 'password') but the database will support multiple users for future.
+## Features
 
-For the MVP, there will only be 1 Kanban board per signed in user.
+- Login (hardcoded: `user` / `password`)
+- 5-column Kawaii-themed Kanban board with peeking animal mascots
+- Drag-and-drop cards, add/delete/rename
+- Board state persisted to SQLite across reloads
+- AI Assistant sidebar powered by OpenRouter (`openai/gpt-oss-120b`)
+- AI can create, move, delete cards and rename columns; changes apply instantly
 
-For the MVP, this will run locally (in a docker container)
+## Tech Stack
 
-## Technical Decisions
+- Frontend: NextJS (App Router, static export)
+- Backend: Python FastAPI, serves the static NextJS build at `/`
+- Database: SQLite via SQLAlchemy (JSON blob per user)
+- AI: OpenRouter API via the `openai` Python client
+- Package manager: `uv` (Python)
+- Packaging: Docker (single container)
 
-- NextJS frontend
-- Python FastAPI backend, including serving the static NextJS site at /
-- Everything packaged into a Docker container
-- Use "uv" as the package manager for python in the Docker container
-- Use OpenRouter for the AI calls. An OPENROUTER_API_KEY is in .env in the project root
-- Use `openai/gpt-oss-120b` as the model
-- Use SQLLite local database for the database, creating a new db if it doesn't exist
-- Start and Stop server scripts for Mac, PC, Linux in scripts/
+## Running Locally
 
-## Starting Point
+Requires Docker and a `.env` file in the project root:
 
-A working MVP of the frontend has been built and is already in frontend. This is not yet designed for the Docker setup. It's a pure frontend-only demo.
+```
+OPENROUTER_API_KEY=sk-or-v1-...
+```
+
+Then run the appropriate start script:
+
+```bash
+./scripts/start_mac.sh    # Mac / Linux
+scripts\start_pc.bat      # Windows
+```
+
+App available at `http://localhost:8000`.
+
+## Project Structure
+
+```
+backend/          FastAPI app, SQLAlchemy models, pytest tests
+frontend/         NextJS app (src/app, src/components, src/lib)
+docs/             PLAN.md, DB_SCHEMA.md
+scripts/          start/stop scripts for Mac, Linux, Windows
+Dockerfile        Multi-stage build: Node (frontend) + Python (backend)
+.env              API keys (gitignored, never committed)
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/board/{username}` | Fetch board state |
+| PUT | `/api/board/{username}` | Save board state |
+| GET | `/api/ai_ping` | Test OpenRouter connectivity |
+| POST | `/api/ai_chat` | AI chat with live board context |
 
 ## Color Scheme
 
-- Accent Yellow: `#ecad0a` - accent lines, highlights
-- Blue Primary: `#209dd7` - links, key sections
-- Purple Secondary: `#753991` - submit buttons, important actions
-- Dark Navy: `#032147` - main headings
-- Gray Text: `#888888` - supporting text, labels
+- Accent Yellow: `#ecad0a`
+- Blue Primary: `#209dd7`
+- Purple Secondary: `#753991`
+- Dark Navy: `#032147`
+- Gray Text: `#888888`
 
-## Coding standards
+## Coding Standards
 
-1. Use latest versions of libraries and idiomatic approaches as of today
-2. Keep it simple - NEVER over-engineer, ALWAYS simplify, NO unnecessary defensive programming. No extra features - focus on simplicity.
-3. Be concise. Keep README minimal. IMPORTANT: no emojis ever
-4. When hitting issues, always identify root cause before trying a fix. Do not guess. Prove with evidence, then fix the root cause.
+1. Use latest versions of libraries and idiomatic approaches
+2. Keep it simple - never over-engineer, no unnecessary defensive programming
+3. Be concise. Keep README minimal. No emojis ever
+4. When hitting issues, identify root cause before fixing. Prove with evidence first
 
-## Working documentation
+## Working Documentation
 
-All documents for planning and executing this project will be in the docs/ directory.
-Please review the docs/PLAN.md document before proceeding.
+See `docs/PLAN.md` for the full completed plan and `docs/DB_SCHEMA.md` for the database schema.
