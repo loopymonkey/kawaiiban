@@ -1,17 +1,44 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { KanbanBoard } from "@/components/KanbanBoard";
 
 const getFirstColumn = () => screen.getAllByTestId(/column-/i)[0];
 
+const mockInitialBoard = {
+  cards: {},
+  columns: [
+    { id: "col-todo", title: "To Do", cardIds: [] },
+    { id: "col-in-progress", title: "In Progress", cardIds: [] },
+    { id: "col-review", title: "Review", cardIds: [] },
+    { id: "col-done", title: "Done", cardIds: [] },
+    { id: "col-published", title: "Published", cardIds: [] }
+  ]
+};
+
+beforeEach(() => {
+  global.fetch = vi.fn(() => Promise.resolve({
+    json: () => Promise.resolve({ state_json: mockInitialBoard })
+  })) as any;
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("KanbanBoard", () => {
-  it("renders five columns", () => {
+  it("renders five columns", async () => {
     render(<KanbanBoard />);
-    expect(screen.getAllByTestId(/column-/i)).toHaveLength(5);
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/column-/i)).toHaveLength(5);
+    });
   });
 
   it("renames a column", async () => {
     render(<KanbanBoard />);
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/column-/i)).toHaveLength(5);
+    });
     const column = getFirstColumn();
     const input = within(column).getByLabelText("Column title");
     await userEvent.clear(input);
@@ -21,9 +48,13 @@ describe("KanbanBoard", () => {
 
   it("adds and removes a card", async () => {
     render(<KanbanBoard />);
+    await waitFor(() => {
+      expect(screen.getAllByTestId(/column-/i)).toHaveLength(5);
+    });
+    
     const column = getFirstColumn();
     const addButton = within(column).getByRole("button", {
-      name: /add a card/i,
+      name: /\+/i,
     });
     await userEvent.click(addButton);
 
@@ -37,9 +68,12 @@ describe("KanbanBoard", () => {
     expect(within(column).getByText("New card")).toBeInTheDocument();
 
     const deleteButton = within(column).getByRole("button", {
-      name: /delete new card/i,
+      name: /Delete New card/i,
     });
     await userEvent.click(deleteButton);
+    
+    const confirmDeleteButton = await screen.findByRole("button", { name: "Delete" });
+    await userEvent.click(confirmDeleteButton);
 
     expect(within(column).queryByText("New card")).not.toBeInTheDocument();
   });

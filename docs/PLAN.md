@@ -35,52 +35,52 @@
 - Success: Entering 'user' and 'password' opens the Kanban view, and logging out reliably clears state.
 
 ## Part 5: Database modeling
-- [ ] Propose a local SQLite database schema for the Kanban board inside `docs/DB_SCHEMA.md` or similar documentation.
-- [ ] Determine how to save data as JSON per the requirements (e.g., a simple `id`, `user_id`, `board_json` structure vs full relational).
-- [ ] Document the database approach for agent-LLM mapping.
+- [x] Propose a local SQLite database schema for the Kanban board inside `docs/DB_SCHEMA.md` or similar documentation.
+- [x] Determine how to save data as JSON per the requirements (e.g., a simple `id`, `user_id`, `board_json` structure vs full relational).
+- [x] Document the database approach for agent-LLM mapping.
 **Tests & Success Criteria**
 - Test: User successfully reviews `docs/DB_SCHEMA.md`.
 - Success: User signs off on the DB approach.
 
 ## Part 6: Backend API
-- [ ] Initialize SQLite DB securely on FastAPI startup if it doesn't already exist.
-- [ ] Provide API endpoints for Kanban interactions:
+- [x] Initialize SQLite DB securely on FastAPI startup if it doesn't already exist.
+- [x] Provide API endpoints for Kanban interactions:
   - `GET /api/board/{username}` - Returns the serialized board JSON for the current mock user.
   - `POST/PUT /api/board/{username}` - Updates the Kanban state.
-- [ ] Write backend unit tests using `pytest` and FastAPI's `TestClient` to verify data serialization/deserialization logic.
+- [x] Write backend unit tests using `pytest` and FastAPI's `TestClient` to verify data serialization/deserialization logic.
 **Tests & Success Criteria**
 - Test: Run `pytest` pointing to an in-memory test db executing CRUD operations.
 - Success: Endpoints correctly save to the SQLite file logic without crashes or 500s.
 
 ## Part 7: Frontend + Backend
-- [ ] Update NextJS `lib/kanban.ts` or components to fetch initial board state from `GET /api/board/user` upon mounting.
-- [ ] Add save handlers so that dropping a card or changing column names issues a `POST/PUT /api/board/user` request.
-- [ ] Create end-to-end tests or mock component tests representing full integration logic.
+- [x] Update NextJS `lib/kanban.ts` or components to fetch initial board state from `GET /api/board/user` upon mounting.
+- [x] Add save handlers so that dropping a card or changing column names issues a `POST/PUT /api/board/user` request.
+- [x] Create end-to-end tests or mock component tests representing full integration logic.
 **Tests & Success Criteria**
 - Test: Open app, move card, refresh browser.
 - Success: The Kanban board preserves state after page reloads, definitively proving backend integration.
 
 ## Part 8: AI connectivity
-- [ ] Add `OPENROUTER_API_KEY` processing logic to the backend via `.env`.
-- [ ] Build a simple `/api/ai_ping` test endpoint that sends a hardcoded system prompt ("say 'Hello!'").
-- [ ] Make the request strictly using model `openai/gpt-oss-120b`.
+- [x] Add `OPENROUTER_API_KEY` processing logic to the backend via `.env`.
+- [x] Build a simple `/api/ai_ping` test endpoint that sends a hardcoded system prompt ("say 'Hello!'").
+- [x] Make the request strictly using model `openai/gpt-oss-120b`.
 **Tests & Success Criteria**
 - Test: Make a request to the newly created endpoint.
 - Success: Response yields valid text directly from OpenRouter, confirming API key mapping.
 
 ## Part 9: AI with Kanban Context
-- [ ] Implement an endpoint `/api/ai_chat` taking `{ prompt: string, history: Array }`.
-- [ ] Fetch the live Kanban JSON data and inject it dynamically into the OpenRouter system prompt.
-- [ ] Configure Structured Outputs (JSON Schema format) so that the LLM responds with a user message AND optional JSON board modifications in a strict unified schema.
-- [ ] Add backend unit tests to verify prompt formatting and extraction logic for the structured output.
+- [x] Implement an endpoint `/api/ai_chat` taking `{ prompt: string, history: Array }`.
+- [x] Fetch the live Kanban JSON data and inject it dynamically into the OpenRouter system prompt.
+- [x] Configure Structured Outputs (JSON Schema format) so that the LLM responds with a user message AND optional JSON board modifications in a strict unified schema.
+- [x] Add backend unit tests to verify prompt formatting and extraction logic for the structured output.
 **Tests & Success Criteria**
 - Test: Trigger the unit test which mocks OpenRouter responses.
 - Success: The backend validates the structural integrity of the returned LLM plan successfully.
 
 ## Part 10: Sidebar AI Chat Widget
-- [ ] Create a beautiful sliding or sticky Sidebar widget inside the NextJS view for AI Chat.
-- [ ] Wire user chat submission to `/api/ai_chat` and display a typing indicator while processing.
-- [ ] Read the structured output updates; if the LLM action changes the board state, mutate frontend React state and (if desired) autosave to DB.
+- [x] Create a beautiful sliding or sticky Sidebar widget inside the NextJS view for AI Chat.
+- [x] Wire user chat submission to `/api/ai_chat` and display a typing indicator while processing.
+- [x] Read the structured output updates; if the LLM action changes the board state, mutate frontend React state and (if desired) autosave to DB.
 **Tests & Success Criteria**
 - Test: Write "Please create a card named 'Write documentation'" in the AI chat.
 - Success: The chat message responds properly AND a new card instantly renders in the primary view without browser reload.

@@ -42,7 +42,7 @@ export const KanbanColumn = ({
         <img 
           src={theme.img} 
           alt={theme.animal} 
-          className="h-[120px] w-auto origin-bottom translate-y-0 transition-transform duration-300 group-hover:-translate-y-4 mix-blend-multiply"
+          className="h-[120px] w-auto origin-bottom translate-y-[10px] transition-transform duration-300 group-hover:-translate-y-2 mix-blend-multiply"
         />
       </div>
 
