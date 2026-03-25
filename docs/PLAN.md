@@ -64,6 +64,17 @@ All 10 parts of the plan have been implemented and are working end-to-end.
 - [x] Board updates from AI instantly reflected in Kanban view (no reload)
 - [x] `*.db` added to `.gitignore`; `.env` was never committed
 
+## Part 11: Multi-User Auth & Google Login
+- [x] `POST /api/auth/register` - username, email, password; returns JWT
+- [x] `POST /api/auth/login` - username or email + password; returns 7-day JWT
+- [x] `GET /api/auth/google` - initiates Google OAuth flow
+- [x] `GET /api/auth/google/callback` - exchanges code, creates/finds user, redirects with JWT
+- [x] Board and AI chat endpoints protected with Bearer token auth
+- [x] `frontend/src/lib/auth.ts` - getAuth/setAuth/clearAuth/authedFetch utility
+- [x] `RegisterForm.tsx` - new registration screen
+- [x] `LoginForm.tsx` - updated with real API auth + Google button + register link
+- [x] `page.tsx` - JWT auth state, Google redirect handling, login/register toggle
+
 ---
 
 ## Known Limitations (by design for MVP)

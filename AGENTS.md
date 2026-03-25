@@ -4,14 +4,15 @@ A cute kawaii-themed Kanban project management app with an AI assistant sidebar.
 
 ## Status
 
-MVP complete. All 10 planned parts implemented and working.
+MVP complete. Parts 1–11 implemented and working.
 
 ## Features
 
-- Login (hardcoded: `user` / `password`)
+- Login (username/password) or Google OAuth
+- Create new user accounts with email + password
 - 5-column Kawaii-themed Kanban board with peeking animal mascots
 - Drag-and-drop cards, add/delete/rename
-- Board state persisted to SQLite across reloads
+- Board state persisted to SQLite across reloads, isolated per user
 - AI Assistant sidebar powered by OpenRouter (`openai/gpt-oss-120b`)
 - AI can create, move, delete cards and rename columns; changes apply instantly
 
@@ -30,6 +31,11 @@ Requires Docker and a `.env` file in the project root:
 
 ```
 OPENROUTER_API_KEY=sk-or-v1-...
+SECRET_KEY=<random string for JWT signing>
+
+# Optional: enables Google Sign-In
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
 Then run the appropriate start script:
@@ -56,10 +62,14 @@ Dockerfile        Multi-stage build: Node (frontend) + Python (backend)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/board/{username}` | Fetch board state |
-| PUT | `/api/board/{username}` | Save board state |
+| POST | `/api/auth/register` | Create account (username, email, password) |
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/auth/google` | Start Google OAuth flow |
+| GET | `/api/auth/google/callback` | Google OAuth callback |
+| GET | `/api/board/{username}` | Fetch board state (auth required) |
+| PUT | `/api/board/{username}` | Save board state (auth required) |
 | GET | `/api/ai_ping` | Test OpenRouter connectivity |
-| POST | `/api/ai_chat` | AI chat with live board context |
+| POST | `/api/ai_chat` | AI chat with live board context (auth required) |
 
 ## Color Scheme
 
