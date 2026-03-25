@@ -4,10 +4,11 @@ const initialFormState = { title: "", details: "" };
 
 type NewCardFormProps = {
   onAdd: (title: string, details: string) => void;
+  onCancel: () => void;
+  buttonColor?: string;
 };
 
-export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const NewCardForm = ({ onAdd, onCancel, buttonColor }: NewCardFormProps) => {
   const [formState, setFormState] = useState(initialFormState);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -17,12 +18,10 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
     }
     onAdd(formState.title.trim(), formState.details.trim());
     setFormState(initialFormState);
-    setIsOpen(false);
   };
 
   return (
-    <div className="mt-4">
-      {isOpen ? (
+    <div className="mb-3">
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             value={formState.title}
@@ -45,31 +44,23 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
           <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:brightness-110"
+              className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:brightness-110"
+              style={{ backgroundColor: buttonColor || "var(--secondary-purple)" }}
             >
               Add card
             </button>
             <button
               type="button"
               onClick={() => {
-                setIsOpen(false);
                 setFormState(initialFormState);
+                onCancel();
               }}
-              className="rounded-full border border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--gray-text)] transition hover:text-[var(--navy-dark)]"
+              className="rounded-full border border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--gray-text)] transition hover:text-[var(--navy-dark)] bg-white"
             >
               Cancel
             </button>
           </div>
         </form>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="w-full rounded-full border border-dashed border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--primary-blue)] transition hover:border-[var(--primary-blue)]"
-        >
-          Add a card
-        </button>
-      )}
     </div>
   );
 };

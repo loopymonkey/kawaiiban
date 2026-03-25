@@ -23,7 +23,7 @@
 }
 
 body {
-  background: var(--surface);
+  background: #F5EEE4;
   color: var(--navy-dark);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   margin: 0;
